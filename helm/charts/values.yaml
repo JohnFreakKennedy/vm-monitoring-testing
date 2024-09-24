@@ -1,0 +1,83 @@
+# spam2000 app configuration
+replicaCount: 1
+image:
+  name: andriiuni/spam2000
+  tag: "1.1394.355"
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: false
+  annotations: {}
+  hosts: []
+  tls: []
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+# VictoriaMetrics configuration
+victoriametrics:
+  retentionPeriod: 24m  # 2 years for long-term cold storage
+  extraArgs:
+    envflag.enable: "true"
+    envflag.prefix: VM_
+    loggerFormat: json
+    search.maxSeries: 800000
+    search.maxUniqueTimeseries: "2000000"
+
+# Grafana configuration
+grafana:
+  dashboards:
+    enabled: true
+    default:
+      kubernetes: 14205
+      spam2000:
+        gnetId: null
+        datasource: victoriametrics
+        json: |
+          {
+            "title": "Spam2000 Custom Metrics",
+            "panels": [
+              {
+                "type": "graph",
+                "title": "Custom Metrics",
+                "targets": [
+                  {
+                    "expr": "rate(spam2000_custom_metric[5m])",
+                    "legendFormat": "metric"
+                  }
+                ]
+              }
+            ]
+          }
