@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-grafana-datasource
+  labels:
+    grafana_datasource: "1"
+data:
+  datasource.yaml: |-
+    apiVersion: 1
+    datasources:
+      - name: VictoriaMetrics
+        type: prometheus
+        url: http://{{ include "app.fullname" . }}-vmselect:8481
+        access: proxy
+        isDefault: true

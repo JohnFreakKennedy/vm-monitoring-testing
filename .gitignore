@@ -1,0 +1,59 @@
+# .gitignore
+
+# MacOS system files
+.DS_Store
+
+# Linux system files
+*.swp
+
+# Windows system files
+Thumbs.db
+Desktop.ini
+
+# Helm chart files
+charts/
+helm-charts/
+Chart.lock
+
+# Helm package files
+*.tgz
+
+# build artifacts and dependencies
+build/
+dist/
+output.txt
+
+# logs and other runtime files
+*.log
+*.tmp
+*.bak
+*.out
+*.log.*
+logs/
+tmp/
+temp/
+cache/
+
+# Code editor and IDE files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.iml
+*.ipr
+*.iws
+
+# secret files
+*.secret
+secrets.yaml
+secret.yaml
+*.key
+*.pem
+*.crt
+
+# package block files
+package-lock.json
+yarn.lock

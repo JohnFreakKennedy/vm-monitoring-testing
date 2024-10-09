@@ -1,0 +1,232 @@
+nameOverride: ""
+fullnameOverride: ""
+
+app:
+  name: spam2000
+  replicaCount: 1
+  image:
+    repository: andriiuni/spam2000
+    tag: "1.1394.355"
+    pullPolicy: IfNotPresent
+  service:
+    name: spam2000-service
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 80
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 80
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  resources:
+    limits:
+      cpu: "100m"
+      memory: "128Mi"
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+
+victoriaMetrics:
+  cluster:
+    enabled: true
+    retentionPeriod: 2y  # For Cold Storage
+    vmagent:
+      enabled: true
+      extraScrapeConfigs: |
+        - job_name: 'app-metrics'
+          metrics_path: /metrics
+          kubernetes_sd_configs:
+            - role: endpoints
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_service_name]
+              action: keep
+              regex: spam2000-service
+    vmstorage:
+      persistence:
+        enabled: true
+        storageClass: standard
+        size: 100Gi  # Adjust size as needed for retention
+    resources:
+      limits:
+        cpu: 2
+        memory: 4Gi
+      requests:
+        cpu: 1
+        memory: 2Gi
+
+# Grafana configuration
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: admin
+  service:
+    type: ClusterIP
+    port: 80
+  ingress:
+    enabled: false  # Set to true if you need external access
+  persistence:
+    enabled: true
+    storageClassName: standard
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: VictoriaMetrics
+          type: prometheus
+          url: http://{{ include "app.fullname" . }}-vmselect:8481
+          access: proxy
+          isDefault: true
+  dashboardsConfigMaps:
+    default:
+      kubernetes-dashboard: "kubernetes-dashboard"
+    custom:
+      app-dashboard: "app-dashboard"
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+        - name: 'custom'
+          orgId: 1
+          folder: 'Custom Dashboards'
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/custom
+  dashboards:
+    default:
+      kubernetes-dashboard:
+        gnetId: 6417  # ID of a default Kubernetes dashboard
+        revision: 1
+        datasource: VictoriaMetrics
+    custom:
+      app-dashboard:
+        json: |-
+          {
+            "annotations": {
+              "list": [
+                {
+                  "builtIn": 1,
+                  "datasource": "-- Grafana --",
+                  "enable": true,
+                  "hide": true,
+                  "iconColor": "rgba(0, 211, 255, 1)",
+                  "name": "Annotations & Alerts",
+                  "type": "dashboard"
+                }
+              ]
+            },
+            "editable": true,
+            "gnetId": null,
+            "graphTooltip": 0,
+            "id": null,
+            "links": [],
+            "panels": [
+              {
+                "datasource": "VictoriaMetrics",
+                "fieldConfig": {
+                  "defaults": {},
+                  "overrides": []
+                },
+                "gridPos": {
+                  "h": 9,
+                  "w": 12,
+                  "x": 0,
+                  "y": 0
+                },
+                "id": 2,
+                "options": {},
+                "targets": [
+                  {
+                    "expr": "custom_metric_total",
+                    "legendFormat": "{{instance}}",
+                    "refId": "A"
+                  }
+                ],
+                "title": "Custom Metric Total",
+                "type": "timeseries"
+              }
+            ],
+            "schemaVersion": 27,
+            "style": "dark",
+            "tags": ["custom"],
+            "templating": {
+              "list": []
+            },
+            "time": {
+              "from": "now-6h",
+              "to": "now"
+            },
+            "timepicker": {},
+            "timezone": "",
+            "title": "Application Metrics",
+            "uid": "app-metrics-dashboard",
+            "version": 1
+          }
+
+# Global settings
+global:
+  namespace: monitoring
+  labels:
+    environment: production
+  appResources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+  app:
+    name: spam2000
+    port: 80
+
+# Service Account
+serviceAccount:
+  create: true
+  name: ""  # Set to empty string
+
+# Horizontal Pod Autoscaler configuration
+hpa:
+  enabled: false          # Set to true to enable HPA
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+# Ingress configuration
+ingress:
+  enabled: false          # Set to true to enable Ingress
+  annotations: {}
+  hosts:
+    - host: spam2000.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: tls-secret
+    #   hosts:
+    #     - spam2000.example.com
+
+# Server scrape configuration (for configmap.yaml)
+server:
+  scrape:
+    config:
+      global:
+        scr

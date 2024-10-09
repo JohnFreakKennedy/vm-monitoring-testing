@@ -1,0 +1,22 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: {{ include "app.fullname" . }}-vmagent
+  labels:
+    app: vm-monitoring-testing
+spec:
+  serviceScrapeSelector:
+    matchLabels:
+      app: {{ .Values.global.app.name }}
+  podScrapeSelector:
+    matchLabels:
+      app: {{ .Values.global.app.name }}
+  endpoints:
+    - jobName: {{ .Values.global.app.name }}-scrape
+      honorLabels: true
+      scheme: http
+      metricsPath: /metrics
+      scrapeInterval: 15s
+      staticConfigs:
+        - targets:
+            - "{{ .Values.global.app.name }}:{{ .Values.global.app.port }}"

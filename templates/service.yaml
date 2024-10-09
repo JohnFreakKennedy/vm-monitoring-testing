@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ include "app.fullname" . }}"
+  labels:
+    app: "{{ .Values.app.name }}"
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "{{ .Values.app.service.port }}"
+    prometheus.io/path: "/metrics"
+spec:
+  selector:
+    app: "{{ .Values.app.name }}"
+  ports:
+    - protocol: TCP
+      port: {{ .Values.app.service.port }}
+      targetPort: {{ .Values.app.service.targetPort }}
+  type: {{ .Values.app.service.type }}

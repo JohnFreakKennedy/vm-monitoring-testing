@@ -1,0 +1,201 @@
+{
+    "annotations": {
+      "list": []
+    },
+    "description": "Dashboard for Kubernetes cluster monitoring",
+    "editable": true,
+    "graphTooltip": 0,
+    "panels": [
+      {
+        "type": "graph",
+        "title": "CPU Usage per Node",
+        "datasource": "VictoriaMetrics",
+        "targets": [
+          {
+            "expr": "100 - (avg by (instance) (irate(node_cpu_seconds_total{mode='idle'}[5m])) * 100)",
+            "legendFormat": "{{ instance }}",
+            "refId": "A"
+          }
+        ],
+        "id": 1,
+        "gridPos": {
+          "h": 6,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Memory Usage per Node",
+        "datasource": "VictoriaMetrics",
+        "targets": [
+          {
+            "expr": "(node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100",
+            "legendFormat": "{{ instance }}",
+            "refId": "B"
+          }
+        ],
+        "id": 2,
+        "gridPos": {
+          "h": 6,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Filesystem Usage",
+        "datasource": "VictoriaMetrics",
+        "targets": [
+          {
+            "expr": "(node_filesystem_size_bytes{fstype!=\"tmpfs\",mountpoint!=\"/etc/hostname\"} - node_filesystem_free_bytes{fstype!=\"tmpfs\",mountpoint!=\"/etc/hostname\"}) / node_filesystem_size_bytes{fstype!=\"tmpfs\",mountpoint!=\"/etc/hostname\"} * 100",
+            "legendFormat": "{{ instance }} {{ mountpoint }}",
+            "refId": "C"
+          }
+        ],
+        "id": 3,
+        "gridPos": {
+          "h": 6,
+          "w": 24,
+          "x": 0,
+          "y": 6
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Network Traffic",
+        "datasource": "VictoriaMetrics",
+        "targets": [
+          {
+            "expr": "sum by (instance) (irate(node_network_receive_bytes_total[5m]))",
+            "legendFormat": "Receive - {{ instance }}",
+            "refId": "D"
+          },
+          {
+            "expr": "sum by (instance) (irate(node_network_transmit_bytes_total[5m]))",
+            "legendFormat": "Transmit - {{ instance }}",
+            "refId": "E"
+          }
+        ],
+        "id": 4,
+        "gridPos": {
+          "h": 6,
+          "w": 24,
+          "x": 0,
+          "y": 12
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Pod Count per Namespace",
+        "datasource": "VictoriaMetrics",
+        "targets": [
+          {
+            "expr": "count(kube_pod_info) by (namespace)",
+            "legendFormat": "{{ namespace }}",
+            "refId": "F"
+          }
+        ],
+        "id": 5,
+        "gridPos": {
+          "h": 6,
+          "w": 12,
+          "x": 0,
+          "y": 18
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Node Disk I/O",
+        "datasource": "VictoriaMetrics",
+        "targets": [
+          {
+            "expr": "sum by (instance) (rate(node_disk_read_bytes_total[5m]))",
+            "legendFormat": "Read - {{ instance }}",
+            "refId": "G"
+          },
+          {
+            "expr": "sum by (instance) (rate(node_disk_written_bytes_total[5m]))",
+            "legendFormat": "Write - {{ instance }}",
+            "refId": "H"
+          }
+        ],
+        "id": 6,
+        "gridPos": {
+          "h": 6,
+          "w": 12,
+          "x": 12,
+          "y": 18
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Kubernetes API Server Requests",
+        "datasource": "VictoriaMetrics",
+        "targets": [
+          {
+            "expr": "sum(rate(apiserver_request_total[5m])) by (verb)",
+            "legendFormat": "{{ verb }}",
+            "refId": "I"
+          }
+        ],
+        "id": 7,
+        "gridPos": {
+          "h": 6,
+          "w": 24,
+          "x": 0,
+          "y": 24
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Scheduler Pending Pods",
+        "datasource": "VictoriaMetrics",
+        "targets": [
+          {
+            "expr": "sum(kube_pod_status_phase{phase=\"Pending\"}) by (node)",
+            "legendFormat": "{{ node }}",
+            "refId": "J"
+          }
+        ],
+        "id": 8,
+        "gridPos": {
+          "h": 6,
+          "w": 24,
+          "x": 0,
+          "y": 30
+        }
+      },
+      {
+        "type": "graph",
+        "title": "Container Restarts",
+        "datasource": "VictoriaMetrics",
+        "targets": [
+          {
+            "expr": "sum(rate(kube_pod_container_status_restarts_total[5m])) by (container, namespace)",
+            "legendFormat": "{{ namespace }} - {{ container }}",
+            "refId": "K"
+          }
+        ],
+        "id": 9,
+        "gridPos": {
+          "h": 6,
+          "w": 24,
+          "x": 0,
+          "y": 36
+        }
+      }
+    ],
+    "schemaVersion": 27,
+    "style": "dark",
+    "tags": ["kubernetes", "cluster"],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "title": "Kubernetes Cluster Monitoring",
+    "uid": "k8s-cluster-dashboard",
+    "version": 2
+  }  

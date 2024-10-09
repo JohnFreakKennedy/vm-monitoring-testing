@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ include "app.fullname" . }}"
+  labels:
+    app: "{{ .Values.app.name }}"
+spec:
+  replicas: {{ .Values.app.replicaCount }}
+  selector:
+    matchLabels:
+      app: "{{ .Values.app.name }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.app.name }}"
+    spec:
+      serviceAccountName: "{{ include "app.serviceAccountName" . }}"
+      containers:
+        - name: "{{ .Values.app.name }}"
+          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
+          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.app.service.port }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.app.livenessProbe.httpGet.path }}
+              port: {{ .Values.app.livenessProbe.httpGet.port }}
+            initialDelaySeconds: {{ .Values.app.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.app.livenessProbe.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.app.readinessProbe.httpGet.path }}
+              port: {{ .Values.app.readinessProbe.httpGet.port }}
+            initialDelaySeconds: {{ .Values.app.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.app.readinessProbe.periodSeconds }}
+          resources:
+            {{- toYaml .Values.app.resources | nindent 12 }}
