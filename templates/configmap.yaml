@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: "{{ include "app.fullname" . }}-scrape-config"
+  name: "{{ include "myApp.fullname" . }}-scrape-config"
   labels:
-    app: vm-monitoring-testing
+    myApp: vm-monitoring-testing
 data:
   scrape.yaml: |-
     {{ toYaml .Values.server.scrape.config | nindent 4 }}

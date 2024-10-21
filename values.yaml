@@ -1,7 +1,5 @@
-nameOverride: ""
-fullnameOverride: ""
-
-app:
+# myApp configuration
+myApp:
   name: spam2000
   replicaCount: 1
   image:
@@ -9,57 +7,596 @@ app:
     tag: "1.1394.355"
     pullPolicy: IfNotPresent
   service:
-    name: spam2000-service
     type: ClusterIP
-    port: 80
-    targetPort: 80
+    port: 3000
   livenessProbe:
     httpGet:
       path: /health
-      port: 80
-    initialDelaySeconds: 5
-    periodSeconds: 10
+      port: 3000
   readinessProbe:
     httpGet:
       path: /health
-      port: 80
-    initialDelaySeconds: 5
-    periodSeconds: 10
-  resources:
-    limits:
-      cpu: "100m"
-      memory: "128Mi"
-    requests:
-      cpu: "50m"
-      memory: "64Mi"
+      port: 3000
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+  serviceAccount:
+    create: true
+    automount: true
+    annotations: {}
+    name: ""
+  
+  podAnnotations: {}
+  podLabels: {}
+  podSecurityContext: {}
+   # fsGroup: 2000
+  securityContext: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
 
-victoriaMetrics:
-  cluster:
+  resources: {}
+
+  autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 80
+
+  volumes: []
+  volumeMounts: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# VictoriaMetrics configuration
+victoria-metrics-single:
+  global:
+    image:
+      registry: ""
+    imagePullSecrets: []
+    compatibility:
+      openshift:
+        adaptSecurityContext: "auto"
+
+  rbac:
+    create: true
+    namespaced: false
+    extraLabels: {}
+    # annotations: {}
+
+  printNotes: true
+  serviceAccount:
+    create: true
+    # name:
+    extraLabels: {}
+    # annotations: {}
+    automountToken: true
+
+  automountServiceAccountToken: true
+
+  podDisruptionBudget:
+    enabled: false
+    #  minAvailable: 1
+    #  maxUnavailable: 1
+    extraLabels: {}
+
+  server:
     enabled: true
-    retentionPeriod: 2y  # For Cold Storage
-    vmagent:
+    name: server
+    image:
+      registry: ""
+      repository: victoriametrics/victoria-metrics
+      tag: "" # rewrites Chart.AppVersion
+      variant: ""
+      pullPolicy: IfNotPresent
+    imagePullSecrets: []
+    priorityClassName: ""
+    fullnameOverride:
+    retentionPeriod: 1
+    extraArgs:
+      envflag.enable: "true"
+      envflag.prefix: VM_
+      loggerFormat: json
+      promscrape.maxScrapeSize: 334217728
+      search.maxSeries: 800000
+      search.maxUniqueTimeseries: '2000000'
+      search.maxTagKeys: '2000000'
+      search.maxTagValues: '2000000'
+      search.maxLabelsAPISeries: '3000000'
+
+    extraHostPathMounts:
+      []
+      #- name: certs-dir
+      #  mountPath: /etc/kubernetes/certs
+      #  subPath: ""
+      #  hostPath: /etc/kubernetes/certs
+      #  readOnly: true
+
+    extraVolumes:
+      []
+      #- name: example
+      #  configMap:
+      #   name: example
+
+    extraVolumeMounts:
+      []
+      # - name: example
+      #   mountPath: /example
+
+    extraContainers:
+      []
+      #- name: config-reloader
+      #  image: reloader-image
+
+    initContainers:
+      []
+      # - name: vmrestore
+      #   image: victoriametrics/vmrestore:latest
+      #   volumeMounts:
+      #   - mountPath: /storage
+      #     name: vmstorage-volume
+      #   - mountPath: /etc/vm/creds
+      #     name: secret-remote-storage-keys
+      #     readOnly: true
+      #   args:
+      #   - -storageDataPath=/storage
+      #   - -src=s3://your_bucket/folder/latest
+      #   - -credsFilePath=/etc/vm/creds/credentials
+
+    tolerations:
+      []
+      # - key: "key"
+      #   operator: "Equal|Exists"
+      #   value: "value"
+      #   effect: "NoSchedule|PreferNoSchedule"
+
+    nodeSelector: {}
+
+    affinity: {}
+
+    env: []
+
+    envFrom: []
+      #- configMapRef:
+      #    name: special-config
+
+    containerWorkingDir: ""
+    # schedulerName:
+
+    emptyDir: {}
+    persistentVolume:
       enabled: true
-      extraScrapeConfigs: |
-        - job_name: 'app-metrics'
-          metrics_path: /metrics
-          kubernetes_sd_configs:
-            - role: endpoints
-          relabel_configs:
-            - source_labels: [__meta_kubernetes_service_name]
-              action: keep
-              regex: spam2000-service
-    vmstorage:
-      persistence:
-        enabled: true
-        storageClass: standard
-        size: 100Gi  # Adjust size as needed for retention
+      accessModes:
+        - ReadWriteOnce
+      annotations: {}
+
+      storageClass: ""
+      existingClaim: ""
+      matchLabels: {}
+      mountPath: /storage
+      subPath: ""
+      size: 16Gi
+
+    extraLabels: {}
+    podLabels: {}
+    podAnnotations: {}
+    podManagementPolicy: OrderedReady
+
     resources:
-      limits:
-        cpu: 2
-        memory: 4Gi
-      requests:
-        cpu: 1
-        memory: 2Gi
+      {}
+      # limits:
+      #   cpu: 500m
+      #   memory: 512Mi
+      # requests:
+      #   cpu: 500m
+      #   memory: 512Mi
+
+    probe:
+      readiness:
+        httpGet: {}
+        initialDelaySeconds: 5
+        periodSeconds: 15
+        timeoutSeconds: 5
+        failureThreshold: 3
+
+      liveness:
+        tcpSocket: {}
+        initialDelaySeconds: 30
+        periodSeconds: 30
+        timeoutSeconds: 5
+        failureThreshold: 10
+
+      startup: {}
+        #failureThreshold: 30
+        #periodSeconds: 15
+        #successThreshold: 1
+        #timeoutSeconds: 5
+
+    securityContext:
+      enabled: true
+    podSecurityContext:
+      enabled: true
+    ingress:
+      enabled: false
+      annotations: {}
+      #   kubernetes.io/ingress.class: nginx
+      #   kubernetes.io/tls-acme: 'true'
+
+      extraLabels: {}
+      hosts: []
+      #   - name: vmselect.local
+      #     path: /select
+      #     port: http
+
+      tls: []
+      #   - secretName: vmselect-ingress-tls
+      #     hosts:
+      #       - vmselect.local
+      # ingressClassName: nginx
+      pathType: Prefix
+
+    vmbackupmanager:
+      enabled: false
+      
+      image:
+        registry: ""
+        repository: victoriametrics/vmbackupmanager
+        tag: ""
+        # Variant of the image tag to use.
+        # e.g. enterprise.
+        variant: ""
+      disableHourly: false
+      disableDaily: false
+      disableWeekly: false
+      disableMonthly: false
+      destination: ""
+      retention:
+        keepLastHourly: 2
+        keepLastDaily: 2
+        keepLastWeekly: 2
+        keepLastMonthly: 2
+      extraArgs:
+        envflag.enable: "true"
+        envflag.prefix: VM_
+        loggerFormat: json
+      extraVolumeMounts:
+        []
+        # - name: example
+        #   mountPath: /example
+      restore:
+        onStart:
+          enabled: false
+      resources: {}
+      env: []
+      probe:
+        readiness:
+          httpGet:
+            port: manager-http
+          initialDelaySeconds: 5
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        liveness:
+          tcpSocket:
+            port: manager-http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 10
+        startup:
+          httpGet:
+            port: manager-http
+    service:
+      annotations: {}
+      labels: {}
+      clusterIP: ""
+      externalIPs: []
+      loadBalancerIP: ""
+      loadBalancerSourceRanges: []
+      servicePort: 8428
+      # nodePort: 30000
+      type: ClusterIP
+      externalTrafficPolicy: ""
+      healthCheckNodePort: ""
+      ipFamilyPolicy: ""
+      ipFamilies: []
+
+    statefulSet:
+      enabled: true
+      podManagementPolicy: OrderedReady
+    terminationGracePeriodSeconds: 60
+    serviceMonitor:
+      enabled: false
+      extraLabels: {}
+      annotations: {}
+      basicAuth: {}
+      relabelings: []
+      metricRelabelings: []
+
+    relabel:
+      enabled: false
+      config: []
+      configMap: ""
+
+    scrape:
+      enabled: true
+      configMap: ""
+      config:
+        global:
+          scrape_interval: 15s
+
+        scrape_configs:
+          - job_name: victoriametrics
+            static_configs:
+              - targets: [ "localhost:8428" ]
+          - job_name: "kubernetes-apiservers"
+            kubernetes_sd_configs:
+              - role: endpoints
+            scheme: https
+            tls_config:
+              ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+              insecure_skip_verify: true
+            bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+            relabel_configs:
+              - source_labels:
+                  [
+                      __meta_kubernetes_namespace,
+                      __meta_kubernetes_service_name,
+                      __meta_kubernetes_endpoint_port_name,
+                  ]
+                action: keep
+                regex: default;kubernetes;https
+            # -- Scrape rule using kubernetes service discovery for nodes
+          - job_name: "kubernetes-nodes"
+            scheme: https
+            tls_config:
+              ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+              insecure_skip_verify: true
+            bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+            kubernetes_sd_configs:
+              - role: node
+            relabel_configs:
+              - action: labelmap
+                regex: __meta_kubernetes_node_label_(.+)
+              - target_label: __address__
+                replacement: kubernetes.default.svc:443
+              - source_labels: [ __meta_kubernetes_node_name ]
+                regex: (.+)
+                target_label: __metrics_path__
+                replacement: /api/v1/nodes/$1/proxy/metrics
+            
+          - job_name: "kubernetes-nodes-cadvisor"
+            scheme: https
+            tls_config:
+              ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+              insecure_skip_verify: true
+            bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+            kubernetes_sd_configs:
+              - role: node
+            relabel_configs:
+              - action: labelmap
+                regex: __meta_kubernetes_node_label_(.+)
+              - target_label: __address__
+                replacement: kubernetes.default.svc:443
+              - source_labels: [ __meta_kubernetes_node_name ]
+                regex: (.+)
+                target_label: __metrics_path__
+                replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+            metric_relabel_configs:
+              - action: replace
+                source_labels: [pod]
+                regex: '(.+)'
+                target_label: pod_name
+                replacement: '${1}'
+              - action: replace
+                source_labels: [container]
+                regex: '(.+)'
+                target_label: container_name
+                replacement: '${1}'
+              - action: replace
+                target_label: name
+                replacement: k8s_stub
+              - action: replace
+                source_labels: [id]
+                regex: '^/system\.slice/(.+)\.service$'
+                target_label: systemd_service_name
+                replacement: '${1}'
+            honor_timestamps: false 
+          - job_name: "kubernetes-service-endpoints"
+            kubernetes_sd_configs:
+              - role: endpoints
+            relabel_configs:
+              - action: drop
+                source_labels: [ __meta_kubernetes_pod_container_init ]
+                regex: true
+              - action: keep_if_equal
+                source_labels: [ __meta_kubernetes_service_annotation_prometheus_io_port, __meta_kubernetes_pod_container_port_number ]
+              - source_labels:
+                  [ __meta_kubernetes_service_annotation_prometheus_io_scrape ]
+                action: keep
+                regex: true
+              - source_labels:
+                  [ __meta_kubernetes_service_annotation_prometheus_io_scheme ]
+                action: replace
+                target_label: __scheme__
+                regex: (https?)
+              - source_labels:
+                  [ __meta_kubernetes_service_annotation_prometheus_io_path ]
+                action: replace
+                target_label: __metrics_path__
+                regex: (.+)
+              - source_labels:
+                  [
+                      __address__,
+                      __meta_kubernetes_service_annotation_prometheus_io_port,
+                  ]
+                action: replace
+                target_label: __address__
+                regex: ([^:]+)(?::\d+)?;(\d+)
+                replacement: $1:$2
+              - action: labelmap
+                regex: __meta_kubernetes_service_label_(.+)
+              - source_labels: [ __meta_kubernetes_namespace ]
+                action: replace
+                target_label: namespace
+              - source_labels: [ __meta_kubernetes_service_name ]
+                action: replace
+                target_label: service
+              - source_labels: [ __meta_kubernetes_pod_node_name ]
+                action: replace
+                target_label: node
+          
+          - job_name: "kubernetes-service-endpoints-slow"
+            scrape_interval: 5m
+            scrape_timeout: 30s
+            kubernetes_sd_configs:
+              - role: endpoints
+            relabel_configs:
+              - action: drop
+                source_labels: [ __meta_kubernetes_pod_container_init ]
+                regex: true
+              - action: keep_if_equal
+                source_labels: [ __meta_kubernetes_service_annotation_prometheus_io_port, __meta_kubernetes_pod_container_port_number ]
+              - source_labels:
+                  [ __meta_kubernetes_service_annotation_prometheus_io_scrape_slow ]
+                action: keep
+                regex: true
+              - source_labels:
+                  [ __meta_kubernetes_service_annotation_prometheus_io_scheme ]
+                action: replace
+                target_label: __scheme__
+                regex: (https?)
+              - source_labels:
+                  [ __meta_kubernetes_service_annotation_prometheus_io_path ]
+                action: replace
+                target_label: __metrics_path__
+                regex: (.+)
+              - source_labels:
+                  [
+                      __address__,
+                      __meta_kubernetes_service_annotation_prometheus_io_port,
+                  ]
+                action: replace
+                target_label: __address__
+                regex: ([^:]+)(?::\d+)?;(\d+)
+                replacement: $1:$2
+              - action: labelmap
+                regex: __meta_kubernetes_service_label_(.+)
+              - source_labels: [ __meta_kubernetes_namespace ]
+                action: replace
+                target_label: namespace
+              - source_labels: [ __meta_kubernetes_service_name ]
+                action: replace
+                target_label: service
+              - source_labels: [ __meta_kubernetes_pod_node_name ]
+                action: replace
+                target_label: node
+          
+          - job_name: "kubernetes-services"
+            metrics_path: /probe
+            params:
+              module: [ http_2xx ]
+            kubernetes_sd_configs:
+              - role: service
+            relabel_configs:
+              - source_labels:
+                  [ __meta_kubernetes_service_annotation_prometheus_io_probe ]
+                action: keep
+                regex: true
+              - source_labels: [ __address__ ]
+                target_label: __param_target
+              - target_label: __address__
+                replacement: blackbox
+              - source_labels: [ __param_target ]
+                target_label: instance
+              - action: labelmap
+                regex: __meta_kubernetes_service_label_(.+)
+              - source_labels: [ __meta_kubernetes_namespace ]
+                target_label: namespace
+              - source_labels: [ __meta_kubernetes_service_name ]
+                target_label: service
+          
+          - job_name: "kubernetes-pods"
+            kubernetes_sd_configs:
+              - role: pod
+            relabel_configs:
+              - action: drop
+                source_labels: [ __meta_kubernetes_pod_container_init ]
+                regex: true
+              - action: keep_if_equal
+                source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_port, __meta_kubernetes_pod_container_port_number ]
+              - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scrape ]
+                action: keep
+                regex: true
+              - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_path ]
+                action: replace
+                target_label: __metrics_path__
+                regex: (.+)
+              - source_labels:
+                  [ __address__, __meta_kubernetes_pod_annotation_prometheus_io_port ]
+                action: replace
+                regex: ([^:]+)(?::\d+)?;(\d+)
+                replacement: $1:$2
+                target_label: __address__
+              - action: labelmap
+                regex: __meta_kubernetes_pod_label_(.+)
+              - source_labels: [ __meta_kubernetes_namespace ]
+                action: replace
+                target_label: namespace
+              - source_labels: [ __meta_kubernetes_pod_name ]
+                action: replace
+                target_label: pod
+          - job_name: "app-pod"
+            scrape_interval: 1m
+            kubernetes_sd_configs:
+              - role: pod
+            relabel_configs:
+              - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+                action: keep
+                regex: app
+              - source_labels: [__meta_kubernetes_namespace]
+                action: keep
+                regex: default
+              - source_labels: [__meta_kubernetes_pod_container_port_number]
+                action: keep
+                regex: '3000' 
+            metrics_path: /metrics  
+            scheme: http      
+              
+      extraScrapeConfigs: []
+      # - job_name: 'prometheus-blackbox-exporter'
+      #   metrics_path: /probe
+      #   params:
+      #     module: [http_2xx]
+      #   static_configs:
+      #     - targets:
+      #       - https://example.com
+      #   relabel_configs:
+      #     - source_labels: [__address__]
+      #       target_label: __param_target
+      #     - source_labels: [__param_target]
+      #       target_label: instance
+      #     - target_label: __address__
+      #       replacement: prometheus-blackbox-exporter:9115
+
+  extraObjects: []
+ 
+  license:  
+    key: ""
+    secret:
+      name: ""
+      key: ""
 
 # Grafana configuration
 grafana:
@@ -81,16 +618,14 @@ grafana:
     datasources.yaml:
       apiVersion: 1
       datasources:
-        - name: VictoriaMetrics
+        - name: victoriametrics
           type: prometheus
-          url: http://{{ include "app.fullname" . }}-vmselect:8481
+          orgId: 1
+          url: http://vm-monitoring-victoria-metrics-single-server.monitoring.svc.cluster.local:8428
           access: proxy
           isDefault: true
-  dashboardsConfigMaps:
-    default:
-      kubernetes-dashboard: "kubernetes-dashboard"
-    custom:
-      app-dashboard: "app-dashboard"
+          updateIntervalSeconds: 10
+          editable: true
   dashboardProviders:
     dashboardproviders.yaml:
       apiVersion: 1
@@ -103,84 +638,8 @@ grafana:
           editable: true
           options:
             path: /var/lib/grafana/dashboards/default
-        - name: 'custom'
-          orgId: 1
-          folder: 'Custom Dashboards'
-          type: file
-          disableDeletion: false
-          editable: true
-          options:
-            path: /var/lib/grafana/dashboards/custom
-  dashboards:
-    default:
-      kubernetes-dashboard:
-        gnetId: 6417  # ID of a default Kubernetes dashboard
-        revision: 1
-        datasource: VictoriaMetrics
-    custom:
-      app-dashboard:
-        json: |-
-          {
-            "annotations": {
-              "list": [
-                {
-                  "builtIn": 1,
-                  "datasource": "-- Grafana --",
-                  "enable": true,
-                  "hide": true,
-                  "iconColor": "rgba(0, 211, 255, 1)",
-                  "name": "Annotations & Alerts",
-                  "type": "dashboard"
-                }
-              ]
-            },
-            "editable": true,
-            "gnetId": null,
-            "graphTooltip": 0,
-            "id": null,
-            "links": [],
-            "panels": [
-              {
-                "datasource": "VictoriaMetrics",
-                "fieldConfig": {
-                  "defaults": {},
-                  "overrides": []
-                },
-                "gridPos": {
-                  "h": 9,
-                  "w": 12,
-                  "x": 0,
-                  "y": 0
-                },
-                "id": 2,
-                "options": {},
-                "targets": [
-                  {
-                    "expr": "custom_metric_total",
-                    "legendFormat": "{{instance}}",
-                    "refId": "A"
-                  }
-                ],
-                "title": "Custom Metric Total",
-                "type": "timeseries"
-              }
-            ],
-            "schemaVersion": 27,
-            "style": "dark",
-            "tags": ["custom"],
-            "templating": {
-              "list": []
-            },
-            "time": {
-              "from": "now-6h",
-              "to": "now"
-            },
-            "timepicker": {},
-            "timezone": "",
-            "title": "Application Metrics",
-            "uid": "app-metrics-dashboard",
-            "version": 1
-          }
+  dashboardsConfigMaps:
+    default: "grafana-dashboards"
 
 # Global settings
 global:
@@ -194,7 +653,7 @@ global:
     requests:
       cpu: "250m"
       memory: "256Mi"
-  app:
+  myApp:
     name: spam2000
     port: 80
 
@@ -229,4 +688,5 @@ server:
   scrape:
     config:
       global:
-        scr
+        scrape_interval: 15s
+        evaluation_interval: 15s

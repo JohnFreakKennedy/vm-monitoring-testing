@@ -1,64 +1,71 @@
-{{/* Common Labels */}}
-{{- define "app.commonLabels" -}}
-app.kubernetes.io/name: {{ include "app.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}
-
-{{/* Common Annotations */}}
-{{- define "app.commonAnnotations" -}}
-meta.helm.sh/release-name: {{ .Release.Name }}
-meta.helm.sh/release-namespace: {{ .Release.Namespace }}
-{{- end }}
-
-{{/* Chart Name */}}
-{{- define "app.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
-
-{{/* Fullname */}}
-{{- define "app.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
+{{/*
+Expand the name of the chart.
+*/}}
+{{- define "myApp.name" -}}
+{{- if .Values.myApp }}
+{{- default .Values.myApp.nameOverride .Chart.Name | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- printf "%s-%s" .Release.Name (include "app.name" .) | trunc 63 | trimSuffix "-" }}
+{{- .Chart.Name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 {{- end }}
 
 {{/*
+Create a default fully qualified app name.
+*/}}
+{{- define "myApp.fullname" -}}
+{{- if .Values.myApp }}
+  {{- if .Values.myApp.fullnameOverride }}
+    {{- .Values.myApp.fullnameOverride | lower | trunc 63 | trimSuffix "-" }}
+  {{- else }}
+    {{- $name := include "myApp.name" . | lower }}
+    {{- if hasSuffix .Release.Name $name }}
+      {{- .Release.Name | lower | trunc 63 | trimSuffix "-" }}
+    {{- else }}
+      {{- printf "%s-%s" .Release.Name $name | lower | trunc 63 | trimSuffix "-" }}
+    {{- end }}
+  {{- end }}
+{{- else }}
+  {{- .Release.Name | lower | trunc 63 | trimSuffix "-" }}
+{{- end }}
+{{- end }}
+
+
+{{/*
+Create the name of the service account to use
+*/}}
+{{- define "myApp.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "myApp.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
+
+
+{{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "app.chart" -}}
+{{- define "myApp.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "app.labels" -}}
-helm.sh/chart: {{ include "app.chart" . }}
-{{ include "app.selectorLabels" . }}
+{{- define "myApp.labels" -}}
+helm.sh/chart: {{ include "myApp.chart" . }}
+{{ include "myApp.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+app.kubernetes.io/version: {{ .Chart.AppVersion | lower | quote }}
 {{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/managed-by: {{ .Release.Service | lower }}
 {{- end }}
 
 {{/*
 Selector labels
 */}}
-{{- define "app.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "app.name" . }}
+{{- define "myApp.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "myApp.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "app.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "app.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}

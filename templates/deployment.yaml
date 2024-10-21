@@ -1,37 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "{{ include "app.fullname" . }}"
+  name: "{{ include "myApp.fullname" . }}"
   labels:
-    app: "{{ .Values.app.name }}"
+    myApp: "{{ .Values.myApp.name }}"
 spec:
-  replicas: {{ .Values.app.replicaCount }}
+  replicas: {{ .Values.myApp.replicaCount }}
   selector:
     matchLabels:
-      app: "{{ .Values.app.name }}"
+      myApp: "{{ .Values.myApp.name }}"
   template:
     metadata:
       labels:
-        app: "{{ .Values.app.name }}"
+        myApp: "{{ .Values.myApp.name }}"
     spec:
-      serviceAccountName: "{{ include "app.serviceAccountName" . }}"
+      serviceAccountName: "{{ include "myApp.serviceAccountName" . }}"
       containers:
-        - name: "{{ .Values.app.name }}"
-          image: "{{ .Values.app.image.repository }}:{{ .Values.app.image.tag }}"
-          imagePullPolicy: {{ .Values.app.image.pullPolicy }}
+        - name: "{{ .Values.myApp.name }}"
+          image: "{{ .Values.myApp.image.repository }}:{{ .Values.myApp.image.tag }}"
+          imagePullPolicy: {{ .Values.myApp.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.app.service.port }}
+            - containerPort: {{ .Values.myApp.service.port }}
           livenessProbe:
             httpGet:
-              path: {{ .Values.app.livenessProbe.httpGet.path }}
-              port: {{ .Values.app.livenessProbe.httpGet.port }}
-            initialDelaySeconds: {{ .Values.app.livenessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.app.livenessProbe.periodSeconds }}
+              path: {{ .Values.myApp.livenessProbe.httpGet.path }}
+              port: {{ .Values.myApp.livenessProbe.httpGet.port }}
+            initialDelaySeconds: {{ .Values.myApp.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.myApp.livenessProbe.periodSeconds }}
           readinessProbe:
             httpGet:
-              path: {{ .Values.app.readinessProbe.httpGet.path }}
-              port: {{ .Values.app.readinessProbe.httpGet.port }}
-            initialDelaySeconds: {{ .Values.app.readinessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.app.readinessProbe.periodSeconds }}
+              path: {{ .Values.myApp.readinessProbe.httpGet.path }}
+              port: {{ .Values.myApp.readinessProbe.httpGet.port }}
+            initialDelaySeconds: {{ .Values.myApp.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.myApp.readinessProbe.periodSeconds }}
           resources:
-            {{- toYaml .Values.app.resources | nindent 12 }}
+            {{- toYaml .Values.myApp.resources | nindent 12 }}

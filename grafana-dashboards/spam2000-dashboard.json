@@ -1,0 +1,207 @@
+{
+  "title": "Spam2000 App Metrics Dashboard",
+  "uid": "spam-app-dashboard-metrics",
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "gauge",
+      "title": "Total Requests Processed",
+      "datasource": "victoriametrics",
+      "targets": [
+        {
+          "expr": "sum(app_total_requests{product=~\".*$product\", platform=~\".*$platform\", email=~\".*$email\", name=~\".*$name\", country=~\".*$country\"})[5m]",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "gauge": {
+        "show": true,
+        "minValue": 0,
+        "maxValue": 10000
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 10000
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 9
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Successful Requests",
+      "datasource": "victoriametrics",
+      "targets": [
+        {
+          "expr": "sum(app_success_requests{product=~\".*$product\", platform=~\".*$platform\", email=~\".*$email\", name=~\".*$name\", country=~\".*$country\"})[5m]",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "gauge": {
+        "show": true,
+        "minValue": 0,
+        "maxValue": 10000
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 10000
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 9
+      }
+    },
+    {
+      "type": "gauge",
+      "title": "Error Rate",
+      "datasource": "victoriametrics",
+      "targets": [
+        {
+          "expr": "sum(app_error_rate{product=~\".*$product\", platform=~\".*$platform\", email=~\".*$email\", name=~\".*$name\", country=~\".*$country\"})[5m]",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "gauge": {
+        "show": true,
+        "minValue": 0,
+        "maxValue": 100
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false
+        }
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 9
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "type": "query",
+        "datasource": "victoriametrics",
+        "name": "product",
+        "label": "Product",
+        "query": "label_values(app_total_requests, product)",
+        "multi": true,
+        "allValue": ".*",
+        "regex": "",
+        "includeAll": true
+      },
+      {
+        "type": "query",
+        "datasource": "victoriametrics",
+        "name": "platform",
+        "label": "Platform",
+        "query": "label_values(app_total_requests, platform)",
+        "multi": true,
+        "allValue": ".*",
+        "regex": "",
+        "includeAll": true
+      },
+      {
+        "type": "query",
+        "datasource": "victoriametrics",
+        "name": "email",
+        "label": "Email",
+        "query": "label_values(app_total_requests, email)",
+        "multi": true,
+        "allValue": ".*",
+        "regex": "",
+        "includeAll": true
+      },
+      {
+        "type": "query",
+        "datasource": "victoriametrics",
+        "name": "name",
+        "label": "Name",
+        "query": "label_values(app_total_requests, name)",
+        "multi": true,
+        "allValue": ".*",
+        "regex": "",
+        "includeAll": true
+      },
+      {
+        "type": "query",
+        "datasource": "victoriametrics",
+        "name": "country",
+        "label": "Country",
+        "query": "label_values(app_total_requests, country)",
+        "multi": true,
+        "allValue": ".*",
+        "regex": "",
+        "includeAll": true
+      }
+    ]
+  }
+}

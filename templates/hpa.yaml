@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "app.fullname" . }}-hpa
+  name: {{ include "myApp.fullname" . }}-hpa
   labels:
-    app: vm-monitoring-testing
+    myApp: vm-monitoring-testing
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: StatefulSet
-    name: {{ include "app.fullname" . }}-vmstorage
+    name: {{ include "myApp.fullname" . }}-vmstorage
   minReplicas: {{ .Values.hpa.minReplicas }}
   maxReplicas: {{ .Values.hpa.maxReplicas }}
   metrics:

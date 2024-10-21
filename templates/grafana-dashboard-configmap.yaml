@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  labels:
+    grafana_dashboard: "4"
+data:
+  k8s-dashboard.json: |
+{{ .Files.Get "grafana-dashboards/k8s-dashboard.json" | indent 4 }}
+  spam2000-dashboard.json: |
+{{ .Files.Get "grafana-dashboards/spam2000-dashboard.json" | indent 4 }}
+  spam2000-perfomance-insights.json: |
+{{ .Files.Get "grafana-dashboards/spam2000-perfomance-insights.json" | indent 4 }}

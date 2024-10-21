@@ -2,9 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "app.fullname" . }}-ingress
+  name: {{ include "myApp.fullname" . }}-ingress
   labels:
-    app: vm-monitoring-testing
+    myApp: vm-monitoring-testing
   annotations:
     {{- range $key, $value := .Values.ingress.annotations }}
     {{ $key }}: "{{ $value }}"
@@ -20,7 +20,7 @@ spec:
             pathType: {{ .pathType | default "Prefix" }}
             backend:
               service:
-                name: {{ include "app.fullname" . | printf "%s-grafana" .Release.Name }}
+                name: {{ include "myApp.fullname" . | printf "%s-grafana" .Release.Name }}
                 port:
                   number: 80
           {{- end }}
